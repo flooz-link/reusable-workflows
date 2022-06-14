@@ -31,10 +31,18 @@ on:
         required: false
         type: string
         default: 1Gi
-      PUBLIC:
+      INGRESS_RULE:
         required: false
-        type: boolean
-        default: false
+        type: string
+        default: ''
+      MAX_INSTANCES:
+        required: false
+        type: number
+        default: 200
+      MIN_INSTANCES:
+        required: false
+        type: number
+        default: 0
 
 jobs:
   deploy-cloud-run-service:
@@ -70,9 +78,11 @@ jobs:
       - name: Create Flag Str
         id: flags
         run: |-
-          defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --concurrency=${{ inputs.CONCURRENCY }} ")
-          if [[ $${{ inputs.PUBLIC }} ]]; then echo ::set-output flags=echo $defaultFlags --allow-unauthenticated; else echo ::set-output flags=echo $defaultFlags; fi
-        
+          defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
+         
+          if [[ ${{ inputs.INGRESS_RULE }} ]]; then  defaultFlags=$($defaultFlags ${{ INGRESS_RULE }}); fi
+
+          echo ::set-output flags=echo $defaultFlags 
 
       - name: Deploy to Cloud Run
         id: deploy

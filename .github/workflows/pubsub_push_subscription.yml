@@ -1,0 +1,46 @@
+name: PubSub Push Subscription Workflow
+
+on:
+  workflow_call:
+    inputs:
+      ENDPOINT:
+        required: true
+        type: string
+      PROJECT_ID:
+        required: true
+        type: string
+      SERVICE:
+        required: true
+        type: string
+      ENV: 
+        required: true
+        type: string
+      TOPIC:
+        required: true
+        type: string
+      PUB_SUB_PROJECT_ID:
+        required: false
+        type: string
+        default: ${{ inputs.PROJECT_ID }}
+
+      
+    
+
+jobs:
+  deploy-cloud-run-service:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create PubSub Subscription For ${{ inputs.ENDPOINT }}
+        run: |-
+          pushTopic=$(echo ${{ inputs.ENDPOINT }})
+          emptyResponse=$(echo "[]")
+          output=$(gcloud pubsub subscriptions list --filter=name=projects/${{ inputs.PROJECT_ID}}/subscriptions/${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.TOPIC }}-subscription --format="json")
+          echo $output
+          if [ $output == $emptyResponse ]; then  
+              gcloud pubsub subscriptions create ${{ inputs.SERVICE }}-${{inputs.ENV}}-${{ inputs.TOPIC }}-subscription \
+              --topic=${{ inputs.TOPIC }} \
+              --topic-project=${{ inputs.PUB_SUB_PROJECT_ID }} \
+              --push-endpoint=$pushTopic 
+          else
+              echo "Subscription Already exists"
+          fi

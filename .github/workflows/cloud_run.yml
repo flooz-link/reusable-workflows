@@ -1,0 +1,70 @@
+name: Cloud Run Deployment Workflow
+
+on:
+  workflow_call:
+    inputs:
+      serviceName:
+        required: true
+        type: string
+      PROJECT_ID:
+        required: true
+        type: string
+      SERVICE:
+        required: true
+        type: string
+      REGION:
+        required: true
+        type: string
+        default: us-central1
+      ENV:
+        required: true
+        type: string
+    secrets:
+      SA_GITHUB_ACTIONS:
+        required: true
+
+jobs:
+  deploy-cloud-run-service:
+    name: Deploying ${{env.serviceName}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.SA_GITHUB_ACTIONS }}'
+          create_credentials_file: true
+          export_environment_variables: true
+      
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Authorize Docker push
+        run: gcloud auth configure-docker
+
+      - name: Fix env vars
+        run: |
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+
+      - name: Build Container
+        run: |-
+          docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }} -f Dockerfile ../ --build-arg ENV=${{ env.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
+          docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}
+        working-directory: api/
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          service: ${{ env.SERVICE }}
+          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}
+          region: ${{ env.REGION }}
+          flags: '--cpu=2 --memory=1Gi --concurrency=20 --allow-unauthenticated'
+          env_vars: |
+            SERVICE = ${{ env.SERVICE }}
+            PROJECT_ID = ${{ env.PROJECT_ID }}
+            GIT_VERSION = ${{ github.sha }}
+      - name: Show Output
+        run: echo ${{ steps.deploy.outputs.url }}

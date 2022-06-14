@@ -19,6 +19,9 @@ on:
       ENV:
         required: true
         type: string
+      WORK_DIR:
+        required: true
+        type: string
     secrets:
       SA_GITHUB_ACTIONS:
         required: true
@@ -52,7 +55,7 @@ jobs:
         run: |-
           docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }} -f Dockerfile ../ --build-arg ENV=${{ env.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
           docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}
-        working-directory: api/
+        working-directory: ${{env.WORK_DIR}}
 
       - name: Deploy to Cloud Run
         id: deploy

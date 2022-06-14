@@ -25,7 +25,7 @@ on:
 
 jobs:
   deploy-cloud-run-service:
-    name: Deploying ${{env.SERVICE}}
+    name: Deploying ${{inputs.SERVICE}}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -50,21 +50,21 @@ jobs:
 
       - name: Build Container
         run: |-
-          docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }} -f Dockerfile ../ --build-arg ENV=${{ env.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
-          docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}
-        working-directory: ${{env.WORK_DIR}}
+          docker build -t gcr.io/${{ inputs.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f Dockerfile ../ --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
+          docker push gcr.io/${{ inputs.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
+        working-directory: ${{inputs.WORK_DIR}}
 
       - name: Deploy to Cloud Run
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v0
         with:
-          service: ${{ env.SERVICE }}
-          image: gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}
-          region: ${{ env.REGION }}
+          service: ${{ inputs.SERVICE }}
+          image: gcr.io/${{ inputs.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
+          region: ${{ inputs.REGION }}
           flags: '--cpu=2 --memory=1Gi --concurrency=20 --allow-unauthenticated'
           env_vars: |
-            SERVICE = ${{ env.SERVICE }}
-            PROJECT_ID = ${{ env.PROJECT_ID }}
+            SERVICE = ${{ inputs.SERVICE }}
+            PROJECT_ID = ${{ inputs.PROJECT_ID }}
             GIT_VERSION = ${{ github.sha }}
       - name: Show Output
         run: echo ${{ steps.deploy.outputs.url }}

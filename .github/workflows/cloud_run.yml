@@ -3,9 +3,6 @@ name: Cloud Run Deployment Workflow
 on:
   workflow_call:
     inputs:
-      serviceName:
-        required: true
-        type: string
       PROJECT_ID:
         required: true
         type: string
@@ -28,7 +25,7 @@ on:
 
 jobs:
   deploy-cloud-run-service:
-    name: Deploying ${{env.serviceName}}
+    name: Deploying ${{env.SERVICE}}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

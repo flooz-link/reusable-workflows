@@ -19,9 +19,9 @@ on:
       WORK_DIR:
         required: true
         type: string
-    secrets:
-      SA_GITHUB_ACTIONS:
-        required: true
+    # secrets:
+    #   SA_GITHUB_ACTIONS:
+    #     required: true
 
 jobs:
   deploy-cloud-run-service:

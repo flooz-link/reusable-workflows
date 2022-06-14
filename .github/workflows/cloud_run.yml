@@ -63,8 +63,8 @@ jobs:
 
       - name: Build Container
         run: |-
-          docker build -t gcr.io/${{ inputs.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f Dockerfile ../ --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
-          docker push gcr.io/${{ inputs.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
+          docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f Dockerfile ../ --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
+          docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
         working-directory: ${{inputs.WORK_DIR}}
 
       - name: Create Flag Str
@@ -72,7 +72,7 @@ jobs:
         run: |-
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --concurrency=${{ inputs.CONCURRENCY }} ")
           if[ ${{ inputs.PUBLIC }} ]; then echo $defaultFlags --allow-unauthenticated
-          echo $defaultFlags
+          if [[ $${{ inputs.PUBLIC }} ]]; then echo $defaultFlags --allow-unauthenticated; else echo $defaultFlags; fi
         
 
       - name: Deploy to Cloud Run
@@ -80,12 +80,12 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v0
         with:
           service: ${{ inputs.SERVICE }}
-          image: gcr.io/${{ inputs.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
+          image: gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
           region: ${{ inputs.REGION }}
           flags: '${{steps.flags.outputs}}'
           env_vars: |
             SERVICE = ${{ inputs.SERVICE }}
-            PROJECT_ID = ${{ inputs.PROJECT_ID }}
+            PROJECT_ID = ${{ secrets.PROJECT_ID }}
             GIT_VERSION = ${{ github.sha }}
       - name: Show Output
         run: echo ${{ steps.deploy.outputs.url }}

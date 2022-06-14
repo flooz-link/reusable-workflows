@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       REGION:
-        required: true
+        required: false
         type: string
         default: us-central1
       ENV:
@@ -67,7 +67,7 @@ jobs:
           docker push gcr.io/${{ inputs.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
         working-directory: ${{inputs.WORK_DIR}}
 
-      - name: Populate Flags
+      - name: Create Flag Str
         id: flags
         run: |-
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --concurrency=${{ inputs.CONCURRENCY }} ")

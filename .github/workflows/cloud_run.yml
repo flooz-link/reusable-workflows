@@ -19,9 +19,22 @@ on:
       WORK_DIR:
         required: true
         type: string
-    # secrets:
-    #   SA_GITHUB_ACTIONS:
-    #     required: true
+      CONCURRENCY:
+        required: false
+        type: number
+        default: 30
+      CPU:
+        required: false
+        type: number
+        default: 2
+      MEM:
+        required: false
+        type: string
+        default: 1Gi
+      PUBLIC:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   deploy-cloud-run-service:
@@ -54,6 +67,14 @@ jobs:
           docker push gcr.io/${{ inputs.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
         working-directory: ${{inputs.WORK_DIR}}
 
+      - name: Populate Flags
+        id: flags
+        run: |-
+          defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --concurrency=${{ inputs.CONCURRENCY }} ")
+          if[ ${{ inputs.PUBLIC }} ]; then echo $defaultFlags --allow-unauthenticated
+          echo $defaultFlags
+        
+
       - name: Deploy to Cloud Run
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v0
@@ -61,7 +82,7 @@ jobs:
           service: ${{ inputs.SERVICE }}
           image: gcr.io/${{ inputs.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
           region: ${{ inputs.REGION }}
-          flags: '--cpu=2 --memory=1Gi --concurrency=20 --allow-unauthenticated'
+          flags: '${{steps.flags.outputs}}'
           env_vars: |
             SERVICE = ${{ inputs.SERVICE }}
             PROJECT_ID = ${{ inputs.PROJECT_ID }}

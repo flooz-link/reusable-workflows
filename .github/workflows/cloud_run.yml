@@ -71,7 +71,6 @@ jobs:
         id: flags
         run: |-
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --concurrency=${{ inputs.CONCURRENCY }} ")
-          if[ ${{ inputs.PUBLIC }} ]; then echo $defaultFlags --allow-unauthenticated
           if [[ $${{ inputs.PUBLIC }} ]]; then echo $defaultFlags --allow-unauthenticated; else echo $defaultFlags; fi
         
 

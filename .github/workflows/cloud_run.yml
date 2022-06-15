@@ -34,11 +34,11 @@ on:
       INGRESS_RULE:
         required: false
         type: string
-        default: ''
+        default: ""
       CUSTOM_FLAGS:
         required: false
         type: string
-        default: ''
+        default: ""
       MAX_INSTANCES:
         required: false
         type: number
@@ -89,6 +89,7 @@ jobs:
       - name: Create Flag Str
         id: flags
         run: |-
+          echo  ${{ inputs.INGRESS_RULE }}
           emptyString=$(echo "")
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --execution-environment gen2  --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
          

@@ -119,5 +119,8 @@ jobs:
             SERVICE = ${{ inputs.SERVICE }}
             PROJECT_ID = ${{ secrets.PROJECT_ID }}
             GIT_VERSION = ${{ github.sha }}
+
       - name: Show Output
-        run: echo ${{ steps.deploy.outputs.url }}
+        run: |-
+          echo ${{ steps.deploy.outputs.url }}
+          echo "::set-output url=${{ steps.deploy.outputs.url }}"

@@ -1,0 +1,43 @@
+
+name: PubSub Push Subscription Workflow
+
+on:
+  workflow_call:
+    inputs:
+      ENDPOINT:
+        required: true
+        type: string
+      PROJECT_ID:
+        required: true
+        type: string
+      SERVICE:
+        required: true
+        type: string
+      ENV: 
+        required: true
+        type: string
+      CRON:
+        required: true
+        type: string
+      REGION:
+        required: false
+        type: string
+        default: us-central1
+
+      
+    
+
+jobs:
+  deploy-cloud-run-service:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create ${{ inputs.SERVICE }} ${{ inputs.ENV }} Cloud Scheduling
+        run: |-
+          endpoint=$(echo ${{ inputs.ENDPOINT }})
+          emptyResponse=$(echo "[]")
+          output=$(gcloud scheduler jobs list --format=json --filter=name="projects/${{ inputs..PROJECT_ID }}/locations/${{ inputs.REGION }}/jobs/${{ inputs.SERVICE }}-${{ inputs.ENV }}-job")
+          if [ $output == $emptyResponse ]; then  
+              gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET
+          else
+              echo "Task already exist"
+          fi

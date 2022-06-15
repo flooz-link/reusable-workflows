@@ -89,11 +89,12 @@ jobs:
       - name: Create Flag Str
         id: flags
         run: |-
+          emptyString=$(echo "")
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --execution-environment gen2  --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
          
-          if [[ ${{ inputs.INGRESS_RULE }} ]]; then  defaultFlags=$($defaultFlags ${{ inputs.INGRESS_RULE }}); fi
+          if [[ ${{ inputs.INGRESS_RULE }} != $emptyString]]; then  defaultFlags=$($defaultFlags ${{ inputs.INGRESS_RULE }}); fi
 
-          if [[ ${{ inputs.CUSTOM_FLAGS }} ]]; then  defaultFlags=$($defaultFlags ${{ inputs.CUSTOM_FLAGS }}); fi
+          if [[ ${{ inputs.CUSTOM_FLAGS }} != $emptyString ]]; then  defaultFlags=$($defaultFlags ${{ inputs.CUSTOM_FLAGS }}); fi
 
           echo ::set-output flags=echo $defaultFlags 
 

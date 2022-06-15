@@ -35,6 +35,10 @@ on:
         required: false
         type: string
         default: ''
+      CUSTOM_FLAGS:
+        required: false
+        type: string
+        default: ''
       MAX_INSTANCES:
         required: false
         type: number
@@ -80,7 +84,9 @@ jobs:
         run: |-
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
          
-          if [[ ${{ inputs.INGRESS_RULE }} ]]; then  defaultFlags=$($defaultFlags ${{ INGRESS_RULE }}); fi
+          if [[ ${{ inputs.INGRESS_RULE }} ]]; then  defaultFlags=$($defaultFlags ${{ inputs.INGRESS_RULE }}); fi
+
+          if [[ ${{ inputs.CUSTOM_FLAGS }} ]]; then  defaultFlags=$($defaultFlags ${{ inputs.CUSTOM_FLAGS }}); fi
 
           echo ::set-output flags=echo $defaultFlags 
 
@@ -91,6 +97,7 @@ jobs:
           service: ${{ inputs.SERVICE }}
           image: gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
           region: ${{ inputs.REGION }}
+          gcloud_component: 'beta'
           flags: '${{steps.flags.outputs.flags}}'
           env_vars: |
             SERVICE = ${{ inputs.SERVICE }}

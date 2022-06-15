@@ -49,7 +49,9 @@ on:
         default: 0
 
     outputs:
-      url: ${{ steps.deploy.outputs.url }}
+      url: 
+        description: The URL of this specific Cloud Run revision
+        value: ${{ steps.deploy.outputs.url }}
 
 jobs:
   deploy-cloud-run-service:

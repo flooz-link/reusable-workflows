@@ -52,6 +52,8 @@ jobs:
   deploy-cloud-run-service:
     name: Deploying ${{inputs.SERVICE}}
     runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2

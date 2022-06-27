@@ -18,14 +18,16 @@ on:
       TOPIC:
         required: true
         type: string
-      SA_CREDENTIALS:
-        required: true
-        type: string
-        description: The Service Account that will be used to perform changes on GCP
       PUB_SUB_PROJECT_ID:
         required: false
         type: string
         default: ${{ inputs.PROJECT_ID }}
+    secrets:
+      SA_CREDENTIALS:
+        required: true
+        description: The Service Account that will be used to perform changes on GCP
+
+
 
       
     
@@ -37,7 +39,7 @@ jobs:
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
         with:
-          credentials_json: '${{ inputs.SA_CREDENTIALS }}'
+          credentials_json: '${{ secrtets.SA_CREDENTIALS }}'
           create_credentials_file: true
           export_environment_variables: true
 

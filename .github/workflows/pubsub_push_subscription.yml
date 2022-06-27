@@ -6,9 +6,6 @@ on:
       ENDPOINT:
         required: true
         type: string
-      PROJECT_ID:
-        required: true
-        type: string
       SERVICE:
         required: true
         type: string
@@ -26,6 +23,9 @@ on:
       SA_CREDENTIALS:
         required: true
         description: The Service Account that will be used to perform changes on GCP
+      PROJECT_ID:
+        required: true
+        description: The GCP project ID
 
 
 
@@ -53,7 +53,7 @@ jobs:
         run: |-
           pushTopic=$(echo ${{ inputs.ENDPOINT }})
           emptyResponse=$(echo "[]")
-          output=$(gcloud pubsub subscriptions list --filter=name=projects/${{ inputs.PROJECT_ID}}/subscriptions/${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.TOPIC }}-subscription --format="json")
+          output=$(gcloud pubsub subscriptions list --filter=name=projects/${{ secrets.PROJECT_ID}}/subscriptions/${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.TOPIC }}-subscription --format="json")
           echo $output
           if [ $output == $emptyResponse ]; then  
               gcloud pubsub subscriptions create ${{ inputs.SERVICE }}-${{inputs.ENV}}-${{ inputs.TOPIC }}-subscription \

@@ -51,6 +51,9 @@ on:
       SA_CREDENTIALS:
         required: true
         description: The Service Account that will be used to perform changes on GCP
+      PROJECT_ID:
+        required: true
+        description: The GCP project ID
 
     # outputs:
     #   url: 

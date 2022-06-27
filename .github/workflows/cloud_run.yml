@@ -19,6 +19,10 @@ on:
       WORK_DIR:
         required: true
         type: string
+      SA_CREDENTIALS:
+        required: true
+        type: string
+        description: The Service Account that will be used to perform changes on GCP
       CONCURRENCY:
         required: false
         type: number
@@ -66,7 +70,7 @@ jobs:
       - id: 'auth'
         uses: 'google-github-actions/auth@v0'
         with:
-          credentials_json: '${{ secrets.SA_GITHUB_ACTIONS }}'
+          credentials_json: '${{ inputs.SA_CREDENTIALS }}'
           create_credentials_file: true
           export_environment_variables: true
       

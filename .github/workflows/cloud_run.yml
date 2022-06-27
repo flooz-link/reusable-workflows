@@ -59,6 +59,9 @@ on:
 
 jobs:
   deploy-cloud-run-service:
+    defaults:
+      run:
+        working-directory: ${{inputs.WORK_DIR}}
     name: Deploying ${{inputs.SERVICE}}
     runs-on: ubuntu-latest
     outputs:
@@ -88,7 +91,6 @@ jobs:
         run: |-
           docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f Dockerfile ../ --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
           docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
-        working-directory: ${{inputs.WORK_DIR}}
 
       - name: Create Flag Str
         id: flags

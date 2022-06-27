@@ -3,9 +3,6 @@ name: Cloud Run Deployment Workflow
 on:
   workflow_call:
     inputs:
-      PROJECT_ID:
-        required: true
-        type: string
       SERVICE:
         required: true
         type: string

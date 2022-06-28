@@ -44,6 +44,7 @@ on:
         required: false
         type: number
         default: 0
+        
     secrets:
       SA_CREDENTIALS:
         required: true
@@ -52,10 +53,10 @@ on:
         required: true
         description: The GCP project ID
 
-    # outputs:
-    #   url: 
-    #     description: The URL of this specific Cloud Run revision
-    #     value: ${{ steps.deploy.outputs.url }}
+    outputs:
+      url: 
+        description: The URL of this specific Cloud Run revision
+        value: ${{ jobs.deploy-cloud-run-service.outputs.url }}
 
 jobs:
   deploy-cloud-run-service:

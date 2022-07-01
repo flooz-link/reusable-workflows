@@ -110,8 +110,8 @@ jobs:
           if [ $customFlagLength -ne 0 ]; then  
             defaultFlags=$($defaultFlags ${{ inputs.CUSTOM_FLAGS }}); 
           fi
-
-          echo ::set-output flags=echo $defaultFlags 
+          
+          echo "::set-output name=flags::$defaultFlags"
 
       - name: Deploy to Cloud Run
         id: deploy

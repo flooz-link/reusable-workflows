@@ -96,27 +96,9 @@ jobs:
       - name: Create Flag Str
         id: flags
         run: |-
-          echo ${#${{ inputs.INGRESS_RULE }}}
-          ingresLength=$(echo ${#${{ inputs.INGRESS_RULE }}})
-
-          customFlagLength=$(echo ${#${{ inputs.CUSTOM_FLAGS }}})
-          
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --execution-environment gen2 --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
-         
-          if [ $ingresLength -ne 0 ]; then
-            defaultFlags=$($defaultFlags ${{ inputs.INGRESS_RULE }}); 
-          fi
 
-          if [ $customFlagLength -ne 0 ]; then
-            defaultFlags=$($defaultFlags ${{ inputs.CUSTOM_FLAGS }}); 
-          fi
-          echo "::debug::customFlagLength: $customFlagLength"
-
-          echo "::debug::ingresLength: $ingresLength"
-
-          echo "::debug::defaultFlags: $defaultFlags"
-
-          echo "::set-output name=flags::$defaultFlags"
+          echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"
 
       - name: Deploy to Cloud Run
         id: deploy

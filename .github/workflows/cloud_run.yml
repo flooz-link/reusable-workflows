@@ -116,7 +116,7 @@ jobs:
             SERVICE = ${{ inputs.SERVICE }}
             PROJECT_ID = ${{ secrets.PROJECT_ID }}
             GIT_VERSION = ${{ github.sha }}
-            ${{ inputs:CONTAINER_ARGS }}
+            ${{ inputs.CONTAINER_ARGS }}
 
       - name: Show Output
         run: |-

@@ -44,6 +44,9 @@ on:
         required: false
         type: number
         default: 0
+      CONTAINER_ARGS:
+        required: false
+        type: string
         
     secrets:
       SA_CREDENTIALS:
@@ -126,6 +129,7 @@ jobs:
             SERVICE = ${{ inputs.SERVICE }}
             PROJECT_ID = ${{ secrets.PROJECT_ID }}
             GIT_VERSION = ${{ github.sha }}
+            ${{ inputs:CONTAINER_ARGS }}
 
       - name: Show Output
         run: |-

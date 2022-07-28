@@ -53,9 +53,9 @@ jobs:
         run: |-
           endpoint=$(echo ${{ inputs.ENDPOINT }})
           emptyResponse=$(echo "[]")
-          output=$(gcloud scheduler jobs list --format=json --filter=name="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/jobs/${{ inputs.SERVICE }}-${{ inputs.ENV }}-job")
+          output=$(gcloud scheduler jobs list --format=json --location=${{ inputs.REGION }} --filter=name="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/jobs/${{ inputs.SERVICE }}-${{ inputs.ENV }}-job")
           if [ $output == $emptyResponse ]; then  
-              gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET
+              gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }}
           else
               echo "Task already exist"
           fi

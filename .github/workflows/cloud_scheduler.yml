@@ -60,7 +60,9 @@ jobs:
           emptyResponse=$(echo "[]")
           output=$(gcloud scheduler jobs list --format=json --location=${{ inputs.REGION }} --filter=name="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/jobs/${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job")
           if [ $output == $emptyResponse ]; then  
+              echo "Creating new Cloud Schedule"
               gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }}
           else
-              echo "Job already exist"
+              echo "Updating existing one"
+              gcloud scheduler jobs update http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }}
           fi

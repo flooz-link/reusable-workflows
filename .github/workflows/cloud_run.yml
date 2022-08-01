@@ -47,6 +47,10 @@ on:
       CONTAINER_ARGS:
         required: false
         type: string
+      NO_TRAFFIC:
+        required: false
+        type: boolean
+        default: false
         
     secrets:
       SA_CREDENTIALS:
@@ -100,6 +104,11 @@ jobs:
         id: flags
         run: |-
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --execution-environment gen2 --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
+          
+          if [${{ inputs.NO_TRAFFIC }} -eq false]; then
+            $defaultFlags=$(echo "$defaultFlags --tags rc --no-traffic)
+          fi
+
 
           echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"
 

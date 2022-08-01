@@ -64,7 +64,5 @@ jobs:
           else
               echo "Updating PubSub subscription"
               gcloud pubsub subscriptions update ${{ inputs.SERVICE }}-${{inputs.ENV}}-${{ inputs.TOPIC }}-subscription \
-              --topic=${{ inputs.TOPIC }} \
-              --topic-project=${{ inputs.PUB_SUB_PROJECT_ID }} \
               --push-endpoint=$pushTopic 
           fi

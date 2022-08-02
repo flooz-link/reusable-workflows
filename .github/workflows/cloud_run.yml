@@ -105,7 +105,7 @@ jobs:
         run: |-
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --execution-environment gen2 --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
           
-          if [${{ inputs.NO_TRAFFIC }} -eq true]; then
+          if [[${{ inputs.NO_TRAFFIC }} == true]]; then
             $defaultFlags=$(echo "$defaultFlags --tags rc --no-traffic")
           fi
 

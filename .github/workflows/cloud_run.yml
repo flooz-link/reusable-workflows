@@ -109,7 +109,7 @@ jobs:
             $defaultFlags=$(echo "$defaultFlags --tags rc --no-traffic")
           fi
 
-          echo $(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"
+          echo $(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})
 
           echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"
 

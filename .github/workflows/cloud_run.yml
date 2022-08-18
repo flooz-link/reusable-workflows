@@ -106,7 +106,7 @@ jobs:
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --execution-environment gen2 --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
           
           if [[ ${{ inputs.NO_TRAFFIC }} = true ]]; then
-            defaultFlags=$(echo "$defaultFlags --tag rc_candidate --no-traffic")
+            defaultFlags=$(echo "$defaultFlags --tag rc-candidate --no-traffic")
           fi
 
           echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"

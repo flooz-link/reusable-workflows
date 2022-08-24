@@ -19,6 +19,10 @@ on:
         required: false
         type: string
         default: ${{ inputs.PROJECT_ID }}
+      RETENTION:
+        required: false
+        type: string
+        default: 7d
     secrets:
       SA_CREDENTIALS:
         required: true
@@ -26,11 +30,6 @@ on:
       PROJECT_ID:
         required: true
         description: The GCP project ID
-
-
-
-      
-    
 
 jobs:
   deploy-cloud-run-service:
@@ -52,17 +51,21 @@ jobs:
       - name: Create PubSub Subscription For ${{ inputs.ENDPOINT }}
         run: |-
           pushTopic=$(echo ${{ inputs.ENDPOINT }})
+          subscriptionsKey=$(echo ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.TOPIC }}-subscription)
+
           emptyResponse=$(echo "[]")
-          output=$(gcloud pubsub subscriptions list --filter=name=projects/${{ secrets.PROJECT_ID}}/subscriptions/${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.TOPIC }}-subscription --format="json")
+          output=$(gcloud pubsub subscriptions list --filter=name=projects/${{ secrets.PROJECT_ID}}/subscriptions/$subscriptionsKey --format="json")
           echo $output
           if [ $output == $emptyResponse ]; then
               echo "Creating new PubSub subscription"  
-              gcloud pubsub subscriptions create ${{ inputs.SERVICE }}-${{inputs.ENV}}-${{ inputs.TOPIC }}-subscription \
+              gcloud pubsub subscriptions create $subscriptionsKey \
               --topic=${{ inputs.TOPIC }} \
               --topic-project=${{ inputs.PUB_SUB_PROJECT_ID }} \
-              --push-endpoint=$pushTopic 
+              --push-endpoint=$pushTopic \
+              --message-retention-duration=${{ inputs.RETENTION }}
           else
               echo "Updating PubSub subscription"
-              gcloud pubsub subscriptions update ${{ inputs.SERVICE }}-${{inputs.ENV}}-${{ inputs.TOPIC }}-subscription \
-              --push-endpoint=$pushTopic 
+              gcloud pubsub subscriptions update $subscriptionsKey \
+              --push-endpoint=$pushTopic \
+              --message-retention-duration=${{ inputs.RETENTION }}
           fi

@@ -86,6 +86,8 @@ jobs:
 
           if [ $output == $emptyResponse ]; then
             echo "Provisioning new MemoryStore cluster ${{ inputs.CLUSTER_NAME }}"
+            gcloud services enable redis.googleapis.com --project=${{ secrets.PROJECT_ID }}
+
             gcloud redis instances create ${{ inputs.CLUSTER_NAME }} \
             --tier=standard \
             --size=${{ inputs.MEMORY }} \
@@ -101,10 +103,24 @@ jobs:
             gcloud redis instances update ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} \
             --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \
             --replica-count=${{ inputs.REPLICA_COUNT }} \
-            --size=${{ inputs.MEMORY }} \
+            --size=${{ inputs.MEMORY }}
+
           fi
+
+          clusterDesc=$(gcloud redis instances describe ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} --format=json)
           
-          echo "::set-output name=url::$(echo gcloud redis instances describe ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} --format=json | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')"
+          # This has to be tested, not sure if its needed
+          # if [ $outpub == $emptyResponse ]; then
+          #   gcloud services enable vpcaccess.googleapis.com
+          #   redisIpRange=$(echo $clusterDesc | jq -r .reservedIpRange)
+          #   gcloud compute networks vpc-access connectors create ${{ secrets.PROJECT_ID }}-vpc-connector \
+          #     --network default \
+          #     --region us-central1 \
+          #     --range $redisIpRange
+          # fi
+
+          
+          echo "::set-output name=url::$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')"
 
       - name: Show Output
         run: |-

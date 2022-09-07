@@ -47,10 +47,16 @@ on:
       CONTAINER_ARGS:
         required: false
         type: string
+        description: additional env vars you want to pass to the container
       NO_TRAFFIC:
         required: false
         type: boolean
         default: false
+        description: if true, creates a revision on cloud run without routing traffic to it, tags it as release candidate
+      VPC_CONNECTOR:
+        required: false
+        type: string
+        default: ""
         
     secrets:
       SA_CREDENTIALS:
@@ -107,6 +113,10 @@ jobs:
           
           if [[ ${{ inputs.NO_TRAFFIC }} = true ]]; then
             defaultFlags=$(echo "$defaultFlags --tag rc-candidate --no-traffic")
+          fi
+
+          if [[ -z ${{ inputs.VPC_CONNECTOR }} = ]]; then
+            defaultFlags=$(echo "$defaultFlags" --vpc-connector=${{ inputs.VPC_CONNECTOR }})
           fi
 
           echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"

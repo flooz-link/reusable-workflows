@@ -1,0 +1,112 @@
+name: Cloud Run Deployment Workflow
+
+on:
+  workflow_call:
+    inputs:
+      SERVICE:
+        required: true
+        type: string
+      CLUSTER_NAME:
+        required: true
+        type: string
+      ENV:
+        required: true
+        type: string
+      WORK_DIR:
+        required: true
+        type: string
+      REPLICA_COUNT:
+        required: false
+        type: number
+        default: 1
+      MEMORY:
+        required: false
+        type: number
+        default: 5
+        description: The memory amount in gigabytes for Redis, defaults to 5 as this is the minimum for replicated clusters
+      SNAPSHOT_PERIOD:
+        required: false
+        type: string
+        default: "1h"
+        description: The period for taking snapshots (check https://cloud.google.com/sdk/gcloud/reference/redis/instances/create#--rdb-snapshot-period) defaults to 1h
+      REGION:
+        required: false
+        type: string
+        default: us-central1
+        
+    secrets:
+      SA_CREDENTIALS:
+        required: true
+        description: The Service Account that will be used to perform changes on GCP
+      PROJECT_ID:
+        required: true
+        description: The GCP project ID
+
+    outputs:
+      url: 
+        description: The URL of this specific Cloud Run revision
+        value: ${{ jobs.deploy-cloud-run-service.outputs.url }}
+
+jobs:
+  provision-memory-store-cluster:
+    defaults:
+      run:
+        working-directory: ${{inputs.WORK_DIR}}
+    name: Provisioning ${{inputs.SERVICE}}
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.SA_CREDENTIALS }}'
+          create_credentials_file: true
+          export_environment_variables: true
+      
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Make sure jq in installed
+        run: sudo apt-get install jq
+
+      - name: Fix env vars
+        run: |
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+
+
+      - name: Provision Cluster
+        id: deploy
+        run: |-
+          emptyResponse=$(echo "[]")
+          output=$(gcloud redis instances list --filter="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/instances/${{ inputs.CLUSTER_NAME }}" --format=json --region=${{ inputs.REGION }})
+
+          if [ $output == $emptyResponse ]; then
+            echo "Provisioning new MemoryStore cluster ${{ inputs.CLUSTER_NAME }}"
+            gcloud redis instances create ${{ inputs.CLUSTER_NAME }} \
+            --tier=standard \
+            --size=${{ inputs.MEMORY }} \
+            --region=${{ inputs.REGION }} \
+            --read-replicas-mode=READ_REPLICAS_ENABLED \
+            --replica-count=${{ inputs.REPLICA_COUNT }} \
+            --redis-version=redis_6_x \
+            --network=default \
+            --display-name=${{ inputs.CLUSTER_NAME }} \
+            --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \
+            --connect-mode=direct-peering  
+          else
+            gcloud redis instances update ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} \
+            --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \
+            --replica-count=${{ inputs.REPLICA_COUNT }} \
+            --size=${{ inputs.MEMORY }} \
+          fi
+          
+          echo "::set-output name=url::$(echo gcloud redis instances describe ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} --format=json | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')"
+
+      - name: Show Output
+        run: |-
+          echo ${{ steps.deploy.outputs.url }}
+          echo "::set-output url=echo ${{ steps.deploy.outputs.url }}"

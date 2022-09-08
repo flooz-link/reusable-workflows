@@ -116,8 +116,6 @@ jobs:
           fi
 
           if [[ ${{ inputs.VPC_CONNECTOR }} = true ]]; then
-            gcloud services enable vpcaccess.googleapis.com
-            
             emptyResponse=$(echo "[]")
             connectorListResult=$(gcloud compute networks vpc-access connectors list --region=${{ inputs.REGION }} --filter="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/connectors/${{ secrets.PROJECT_ID }}-vpc-connector" --format=json)
             if [ $connectorListResult == $emptyResponse ]; then

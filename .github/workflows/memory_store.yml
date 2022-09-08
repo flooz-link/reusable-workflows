@@ -86,8 +86,6 @@ jobs:
 
           if [ $output == $emptyResponse ]; then
             echo "Provisioning new MemoryStore cluster ${{ inputs.CLUSTER_NAME }}"
-            gcloud services enable redis.googleapis.com --project=${{ secrets.PROJECT_ID }}
-
             gcloud redis instances create ${{ inputs.CLUSTER_NAME }} \
             --tier=standard \
             --size=${{ inputs.MEMORY }} \

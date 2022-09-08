@@ -47,7 +47,13 @@ on:
       CONTAINER_ARGS:
         required: false
         type: string
+        description: additional env vars you want to pass to the container
       NO_TRAFFIC:
+        required: false
+        type: boolean
+        default: false
+        description: if true, creates a revision on cloud run without routing traffic to it, tags it as release candidate
+      VPC_CONNECTOR:
         required: false
         type: boolean
         default: false
@@ -107,6 +113,21 @@ jobs:
           
           if [[ ${{ inputs.NO_TRAFFIC }} = true ]]; then
             defaultFlags=$(echo "$defaultFlags --tag rc-candidate --no-traffic")
+          fi
+
+          if [[ ${{ inputs.VPC_CONNECTOR }} = true ]]; then
+            gcloud services enable vpcaccess.googleapis.com
+            
+            emptyResponse=$(echo "[]")
+            connectorListResult=$(gcloud compute networks vpc-access connectors list --region=${{ inputs.REGION }} --filter="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/connectors/${{ secrets.PROJECT_ID }}-vpc-connector" --format=json)
+            if [ $connectorListResult == $emptyResponse ]; then
+              gcloud compute networks vpc-access connectors create ${{ secrets.PROJECT_ID }}-vpc-connector \
+                --network default \
+                --region ${{ inputs.REGION }} \
+                --range 10.8.0.0/28
+            fi
+
+            defaultFlags=$(echo "$defaultFlags" --vpc-connector=${{ secrets.PROJECT_ID }}-vpc-connector)
           fi
 
           echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"

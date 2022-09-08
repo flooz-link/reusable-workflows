@@ -36,7 +36,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
 
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
 
       - run: yarn lint:check
 

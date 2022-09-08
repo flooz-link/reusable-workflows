@@ -105,8 +105,11 @@ jobs:
             --replica-count=${{ inputs.REPLICA_COUNT }} \
             --size=${{ inputs.MEMORY }}
           fi
-          
-          echo "::set-output name=url::$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')"
+
+          ip=$(gcloud redis instances describe redis-flooz --region=us-central1 --format='value(readEndpoint)')
+          port=$(gcloud redis instances describe redis-flooz --region=us-central1 --format='value(readEndpointPort)')
+
+          echo "::set-output name=url::$(echo $ip:$port)"
 
       - name: Show Output
         run: |-

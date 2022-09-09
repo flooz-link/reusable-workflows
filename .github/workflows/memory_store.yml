@@ -43,9 +43,12 @@ on:
         description: The GCP project ID
 
     outputs:
-      url: 
-        description: The URL of this specific Cloud Run revision
-        value: ${{ jobs.provision-memory-store-cluster.outputs.url }}
+      read_url: 
+        description: Read URL of clustered memory store redis instance
+        value: ${{ jobs.provision-memory-store-cluster.outputs.read_url }}
+      write_url: 
+        description: Write URL of clustered memory store redis instance
+        value: ${{ jobs.provision-memory-store-cluster.outputs.write_url }}
 
 jobs:
   provision-memory-store-cluster:
@@ -55,7 +58,8 @@ jobs:
     name: Provisioning ${{inputs.SERVICE}}
     runs-on: ubuntu-latest
     outputs:
-      url: ${{ steps.deploy.outputs.url }}
+      read_url: ${{ steps.deploy.outputs.read_url }}
+      write_url: ${{ steps.deploy.outputs.write_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -106,9 +110,10 @@ jobs:
 
           clusterDesc=$(gcloud redis instances describe ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} --format=json)
 
-          echo "::set-output name=url::$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')"
+          echo "::set-output name=read_url::$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')" name=write_url::$(echo $clusterDesc | jq -r '"\(.host):\(.readEndpointPort)"')"
 
       - name: Show Output
         run: |-
-          echo ${{ steps.deploy.outputs.url }}
-          echo "::set-output url=echo ${{ steps.deploy.outputs.url }}"
+          echo ${{ steps.deploy.outputs.read_url }}
+          echo ${{ steps.deploy.outputs.write_url }}
+          echo "::set-output read_url=echo ${{ steps.deploy.outputs.read_url }} write_url=echo ${{ steps.deploy.outputs.write_url }}"

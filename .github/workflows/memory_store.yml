@@ -45,7 +45,7 @@ on:
     outputs:
       url: 
         description: The URL of this specific Cloud Run revision
-        value: ${{ jobs.deploy-cloud-run-service.outputs.url }}
+        value: ${{ steps.deploy.outputs.url }}
 
 jobs:
   provision-memory-store-cluster:
@@ -105,7 +105,7 @@ jobs:
           fi
 
           clusterDesc=$(gcloud redis instances describe ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} --format=json)
-          
+
           echo "::set-output name=url::$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')"
 
       - name: Show Output

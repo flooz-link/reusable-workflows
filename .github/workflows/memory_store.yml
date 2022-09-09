@@ -110,7 +110,8 @@ jobs:
 
           clusterDesc=$(gcloud redis instances describe ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} --format=json)
 
-          echo "::set-output name=read_url::$(echo $clusterDesc | jq -r '\(.readEndpoint):\(.readEndpointPort)') name=write_url::$(echo $clusterDesc | jq -r '\(.host):\(.readEndpointPort)')"
+          echo "::set-output name=read_url::$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')" 
+          echo "::set-output name=write_url::$(echo $clusterDesc | jq -r '"\(.host):\(.readEndpointPort)"')"
 
       - name: Show Output
         run: |-

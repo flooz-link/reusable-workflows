@@ -45,7 +45,7 @@ on:
     outputs:
       url: 
         description: The URL of this specific Cloud Run revision
-        value: ${{ steps.deploy.outputs.url }}
+        value: ${{ jobs.provision-memory-store-cluster.outputs.url }}
 
 jobs:
   provision-memory-store-cluster:

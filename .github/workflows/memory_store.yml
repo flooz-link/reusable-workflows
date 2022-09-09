@@ -104,10 +104,9 @@ jobs:
             --size=${{ inputs.MEMORY }}
           fi
 
-          ip=$(gcloud redis instances describe redis-flooz --region=us-central1 --format='value(readEndpoint)')
-          port=$(gcloud redis instances describe redis-flooz --region=us-central1 --format='value(readEndpointPort)')
-
-          echo "::set-output name=url::$(echo $ip:$port)"
+          clusterDesc=$(gcloud redis instances describe ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} --format=json)
+          
+          echo "::set-output name=url::$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')"
 
       - name: Show Output
         run: |-

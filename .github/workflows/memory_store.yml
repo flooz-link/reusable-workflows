@@ -47,7 +47,7 @@ on:
         description: Read URL of clustered memory store redis instance
         value: ${{ jobs.provision-memory-store-cluster.outputs.read_url }}
       write_url: 
-        description: Write URL of clustered memory store redis instance
+        description: Write URL of clustered memory store redis instance if no replication is enabled read_url and write_url have the same value
         value: ${{ jobs.provision-memory-store-cluster.outputs.write_url }}
 
 jobs:
@@ -128,8 +128,13 @@ jobs:
 
           clusterDesc=$(gcloud redis instances describe ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} --format=json)
 
-          echo "::set-output name=read_url::$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')" 
-          echo "::set-output name=write_url::$(echo $clusterDesc | jq -r '"\(.host):\(.readEndpointPort)"')"
+          if [ ${{ inputs.REPLICA_COUNT }} -eq 0 ]; then
+            echo "::set-output name=read_url::$(echo $clusterDesc | jq -r '"\(.host):\(.port)"')" 
+            echo "::set-output name=write_url::$(echo $clusterDesc | jq -r '"\(.host):\(.port)"')"
+          else
+            echo "::set-output name=read_url::$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')" 
+            echo "::set-output name=write_url::$(echo $clusterDesc | jq -r '"\(.host):\(.readEndpointPort)"')"
+          fi
 
       - name: Show Output
         run: |-

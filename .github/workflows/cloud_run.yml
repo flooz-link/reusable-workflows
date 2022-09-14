@@ -148,5 +148,6 @@ jobs:
       - name: Show Output
         run: |-
           echo ${{ steps.deploy.outputs.url }}
+          URL_BASE64=$(echo ${{ steps.deploy.outputs.url }} | base64)
           echo "::set-output url=echo ${{ steps.deploy.outputs.url }}"
-          echo "::set-output url_base64=echo ${{ steps.deploy.outputs.url }} | base64 "
+          echo "::set-output url_base64=echo $URL_BASE64"

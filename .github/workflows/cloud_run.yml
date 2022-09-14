@@ -149,3 +149,4 @@ jobs:
         run: |-
           echo ${{ steps.deploy.outputs.url }}
           echo "::set-output url=echo ${{ steps.deploy.outputs.url }}"
+          echo "::set-output url_base64=echo ${{ steps.deploy.outputs.url | base64 }}"

@@ -117,15 +117,15 @@ jobs:
 
           if [[ ${{ inputs.VPC_CONNECTOR }} = true ]]; then
             emptyResponse=$(echo "[]")
-            connectorListResult=$(gcloud compute networks vpc-access connectors list --region=${{ inputs.REGION }} --filter="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/connectors/${{ secrets.PROJECT_ID }}-vpc-connector" --format=json)
+            connectorListResult=$(gcloud compute networks vpc-access connectors list --region=${{ inputs.REGION }} --filter="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/connectors/${{ secrets.PROJECT_ID }}-vpc" --format=json)
             if [ $connectorListResult == $emptyResponse ]; then
-              gcloud compute networks vpc-access connectors create ${{ secrets.PROJECT_ID }}-vpc-connector \
+              gcloud compute networks vpc-access connectors create ${{ secrets.PROJECT_ID }}-vpc \
                 --network default \
                 --region ${{ inputs.REGION }} \
                 --range 10.8.0.0/28
             fi
 
-            defaultFlags=$(echo "$defaultFlags" --vpc-connector=${{ secrets.PROJECT_ID }}-vpc-connector)
+            defaultFlags=$(echo "$defaultFlags" --vpc-connector=${{ secrets.PROJECT_ID }}-vpc)
           fi
 
           echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"

@@ -115,11 +115,11 @@ jobs:
             fi
           else
             if [ ${{ inputs.REPLICA_COUNT }} -eq 0 ]; then
-              gcloud beta redis instances update ${{ inputs.CLUSTER_NAME }} -q --region=${{ inputs.REGION }} \
+              gcloud redis instances update ${{ inputs.CLUSTER_NAME }} -q --region=${{ inputs.REGION }} \
               --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \
               --size=${{ inputs.MEMORY }}
             else
-              gcloud beta redis instances update ${{ inputs.CLUSTER_NAME }} -q --region=${{ inputs.REGION }} \
+              gcloud redis instances update ${{ inputs.CLUSTER_NAME }} -q --region=${{ inputs.REGION }} \
               --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \
               --replica-count=${{ inputs.REPLICA_COUNT }} \
               --size=${{ inputs.MEMORY }}

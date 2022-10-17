@@ -57,6 +57,11 @@ on:
         required: false
         type: boolean
         default: false
+      DOCKER_FILE:
+        required: false
+        type: string
+        description: Path to the docker --filter
+        default: ../
         
     secrets:
       SA_CREDENTIALS:
@@ -103,7 +108,7 @@ jobs:
 
       - name: Build Container
         run: |-
-          docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f Dockerfile ../ --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
+          docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f Dockerfile ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
           docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
 
       - name: Create Flag Str

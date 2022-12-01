@@ -114,7 +114,7 @@ jobs:
       - name: Create Flag Str
         id: flags
         run: |-
-          defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --execution-environment gen2 --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
+          defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --execution-environment gen1 --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
           
           if [[ ${{ inputs.NO_TRAFFIC }} = true ]]; then
             defaultFlags=$(echo "$defaultFlags --tag rc-candidate --no-traffic")

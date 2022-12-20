@@ -62,7 +62,17 @@ on:
         type: string
         description: Path to the docker --filter
         default: Dockerfile ../
-        
+      ARTIFACT_NAME:
+        required: false
+        type: string
+        description: The name of a GitHub artifact generated in a previous step of the build
+        default: 'SKIP'
+      ARTIFACT_DIR_PATH:
+        required: false
+        type: string
+        description: The path to save the file to
+        default: ''
+
     secrets:
       SA_CREDENTIALS:
         required: true
@@ -105,6 +115,13 @@ jobs:
       - name: Fix env vars
         run: |
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        if: inputs.ARTIFACT_NAME != 'SKIP'
+        with:
+          name: ${{ inputs.ARTIFACT_NAME }}
+          path: ${{ inputs.ARTIFACT_DIR_PATH }}
 
       - name: Build Container
         run: |-

@@ -82,9 +82,7 @@ on:
         description: The GCP project ID
       SA_RUNTIME:
         required: false
-        type: string
         description: The runtime service account to use for the Cloud Run service
-        default: ''
 
     outputs:
       url: 

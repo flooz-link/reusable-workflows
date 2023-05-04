@@ -82,8 +82,8 @@ on:
         description: The GCP project ID
       SA_RUNTIME:
         required: false
-        default: false
         description: The runtime service account to use for the Cloud Run service
+        default: ''
 
     outputs:
       url: 
@@ -154,7 +154,7 @@ jobs:
             defaultFlags=$(echo "$defaultFlags" --vpc-connector=${{ secrets.PROJECT_ID }}-vpc)
           fi
 
-          if [[ ${{ secrets.SA_RUNTIME }} != false ]]; then
+          if [[ -z "${{ secrets.SA_RUNTIME }}" ]]; then
             defaultFlags=$(echo "$defaultFlags --service-account=${{ secrets.SA_RUNTIME }}")
           fi
 

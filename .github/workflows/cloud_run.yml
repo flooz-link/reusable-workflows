@@ -153,7 +153,7 @@ jobs:
             defaultFlags=$(echo "$defaultFlags" --vpc-connector=${{ secrets.PROJECT_ID }}-vpc)
           fi
 
-          if [[ -z "${{ secrets.SA_RUNTIME }}" ]]; then
+          if [[ ! -z "${{ secrets.SA_RUNTIME }}" ]]; then
             defaultFlags=$(echo "$defaultFlags --service-account=${{ secrets.SA_RUNTIME }}")
           fi
 

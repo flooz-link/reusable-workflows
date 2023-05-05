@@ -72,6 +72,11 @@ on:
         type: string
         description: The path to save the file to
         default: ''
+      TIMEOUT:
+        required: false
+        type: number
+        description: The timeout for the Cloud Run service
+        default: 300
 
     secrets:
       SA_CREDENTIALS:
@@ -155,6 +160,10 @@ jobs:
 
           if [[ ! -z "${{ secrets.SA_RUNTIME }}" ]]; then
             defaultFlags=$(echo "$defaultFlags --service-account=${{ secrets.SA_RUNTIME }}")
+          fi
+
+          if [[ "${{ inputs.TIMEOUT }}" -gt 300 ]]; then
+            defaultFlags=$(echo "$defaultFlags --timeout=${{ inputs.TIMEOUT }}")
           fi
 
           echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"

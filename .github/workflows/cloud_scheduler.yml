@@ -57,11 +57,10 @@ jobs:
 
       - name: Create ${{ inputs.SERVICE }} ${{ inputs.ENV }} ${{ inputs.JOB_NAME }} Cloud Scheduling
         run: |-
-          endpoint=$(echo ${{ inputs.ENDPOINT }}")
+          endpoint=$(echo ${{ inputs.ENDPOINT }})
           emptyResponse=$(echo "[]")
           output=$(gcloud scheduler jobs list --format=json --location=${{ inputs.REGION }} --filter=name="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/jobs/${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job")
-          defaultFlags=$(echo "${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }}
-            ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }})
+          defaultFlags=$(echo "${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }}")
 
           if [[ ! -z "${{ inputs.DEADLINE }}" ]]; then
             defaultFlags=$(echo "$defaultFlags --attempt-deadline=${{ inputs.DEADLINE }}")

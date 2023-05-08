@@ -24,6 +24,11 @@ on:
         required: true
         type: string
         description: "Unique name to identify this particular job"
+      DEADLINE:
+        required: false
+        type: string
+        description: The attempted deadline configuration
+        default: ''
 
     secrets:
       SA_CREDENTIALS:
@@ -32,11 +37,7 @@ on:
       PROJECT_ID:
         required: true
         description: The GCP project ID
-
-
       
-    
-
 jobs:
   deploy-cloud-run-service:
     runs-on: ubuntu-latest
@@ -56,13 +57,20 @@ jobs:
 
       - name: Create ${{ inputs.SERVICE }} ${{ inputs.ENV }} ${{ inputs.JOB_NAME }} Cloud Scheduling
         run: |-
-          endpoint=$(echo ${{ inputs.ENDPOINT }})
+          endpoint=$(echo ${{ inputs.ENDPOINT }}")
           emptyResponse=$(echo "[]")
           output=$(gcloud scheduler jobs list --format=json --location=${{ inputs.REGION }} --filter=name="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/jobs/${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job")
+          defaultFlags=$(echo "${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }}
+            ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }})
+
+          if [[ ! -z "${{ inputs.DEADLINE }}" ]]; then
+            defaultFlags=$(echo "$defaultFlags --attempt-deadline=${{ inputs.DEADLINE }}")
+          fi
+
           if [ $output == $emptyResponse ]; then  
               echo "Creating new Cloud Schedule"
-              gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }}
+              gcloud scheduler jobs create http $defaultFlags
           else
               echo "Updating existing one"
-              gcloud scheduler jobs update http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }}
+              gcloud scheduler jobs update http $defaultFlags
           fi

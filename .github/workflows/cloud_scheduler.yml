@@ -27,7 +27,7 @@ on:
       DEADLINE:
         required: false
         type: string
-        description: The attempted deadline configuration
+        description: The attempt deadline configuration
         default: ''
 
     secrets:

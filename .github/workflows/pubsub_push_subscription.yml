@@ -23,6 +23,10 @@ on:
         required: false
         type: string
         default: 7d
+      ACK_DEADLINE:
+          required: false
+          type: number
+          default: 120
     secrets:
       SA_CREDENTIALS:
         required: true
@@ -62,10 +66,12 @@ jobs:
               --topic=${{ inputs.TOPIC }} \
               --topic-project=${{ inputs.PUB_SUB_PROJECT_ID }} \
               --push-endpoint=$pushTopic \
-              --message-retention-duration=${{ inputs.RETENTION }}
+              --message-retention-duration=${{ inputs.RETENTION }} \
+              --ack-deadline=${{ inputs.ACK_DEADLINE }}
           else
               echo "Updating PubSub subscription"
               gcloud pubsub subscriptions update $subscriptionsKey \
               --push-endpoint=$pushTopic \
-              --message-retention-duration=${{ inputs.RETENTION }}
+              --message-retention-duration=${{ inputs.RETENTION }} \
+              --ack-deadline=${{ inputs.ACK_DEADLINE }}
           fi

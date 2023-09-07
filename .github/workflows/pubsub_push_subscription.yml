@@ -58,7 +58,7 @@ jobs:
           subscriptionsKey=$(echo ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.TOPIC }}-subscription)
 
           emptyResponse=$(echo "[]")
-          output=$(gcloud pubsub subscriptions list --filter=name=projects/${{ secrets.PROJECT_ID}}/subscriptions/$subscriptionsKey --format="json")
+          output=$(gcloud pubsub subscriptions list --filter=name=projects/${{ secrets.PROJECT_ID }}/subscriptions/$subscriptionsKey --format="json")
           echo $output
           if [ $output == $emptyResponse ]; then
               echo "Creating new PubSub subscription"  

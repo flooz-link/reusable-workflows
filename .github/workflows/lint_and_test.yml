@@ -29,15 +29,15 @@ jobs:
         working-directory: ${{ inputs.dirName }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.nodeVersion }}
           cache: 'yarn'
           registry-url: https://registry.npmjs.org/
 
       - id: 'auth'
-        uses: 'google-github-actions/auth@v0'
+        uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.SA_TEST_CREDS }}'
           create_credentials_file: true

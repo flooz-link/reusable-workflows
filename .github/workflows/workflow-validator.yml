@@ -31,4 +31,4 @@ jobs:
       - run: yarn global add yaml-validator@4.0.0 
 
       - name: Check style
-        run: for x in *.yml; do yaml-validator $x; done
+        run: for x in *.yml; do echo "check file $x"; yaml-validator $x; done

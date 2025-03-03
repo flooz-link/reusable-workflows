@@ -1,0 +1,34 @@
+name: Workflow validator
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    types:
+      - opened
+      - synchronize
+    paths:
+      - '.github/workflows/**'
+
+jobs:
+  run_test_suite:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: '.github/workflows'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'yarn'
+
+      - run: yarn global add yaml-validator@4.0.0 
+
+      - name: Check style
+        run: for x in *.yml; do echo "check file $x"; yaml-validator $x; done

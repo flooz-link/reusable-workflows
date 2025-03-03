@@ -138,9 +138,9 @@ jobs:
         id: set-npm-token
         run: |
           if [ -n "${{ secrets.ROOT_GITHUB_TOKEN }}" ]; then
-            echo "NPM_TOKEN=${{ secrets.ROOT_GITHUB_TOKEN }}" >> $NPM_TOKEN
+            echo "NPM_TOKEN=${{ secrets.ROOT_GITHUB_TOKEN }}" >> $GITHUB_ENV
           else
-            echo "NPM_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $NPM_TOKEN
+            echo "NPM_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
           fi
       - name: Setup .npmrc file
         run: |

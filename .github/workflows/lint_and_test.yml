@@ -16,6 +16,9 @@ on:
       SA_TEST_CREDS:
         required: true
         description: The Service Account that will be used to perform changes on GCP
+      ROOT_GITHUB_TOKEN:
+        required: false
+        description: Use the GITHUB_TOKEN get the root project 
   
 
 jobs:
@@ -40,9 +43,18 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
 
+      - name: Set NPM_TOKEN environment variable
+        id: set-npm-token
+        run: |
+          if [ -n "${{ secrets.ROOT_GITHUB_TOKEN }}" ]; then
+            echo "NPM_TOKEN=${{ secrets.ROOT_GITHUB_TOKEN }}" >> $NPM_TOKEN
+          else
+            echo "NPM_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $NPM_TOKEN
+          fi
+    
       - name: Setup .npmrc file
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > .npmrc
           echo "@flooz-link:registry=https://npm.pkg.github.com" >> .npmrc
 
       - run: yarn install --frozen-lockfile

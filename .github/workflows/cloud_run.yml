@@ -154,8 +154,7 @@ jobs:
       - name: Setup .npmrc file for parent
         if: inputs.PARENT_DIR != ''
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > ${{ inputs.PARENT_DIR }}/.npmrc
-          echo "@flooz-link:registry=https://npm.pkg.github.com" >> ${{ inputs.PARENT_DIR }}/.npmrc
+          cp .npmrc ${{ inputs.PARENT_DIR }}/.npmrc
 
       - name: Build Container
         run: |-

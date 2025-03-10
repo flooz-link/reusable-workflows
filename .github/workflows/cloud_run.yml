@@ -16,6 +16,10 @@ on:
       WORK_DIR:
         required: true
         type: string
+      PARENT_DIR:
+        required: false
+        type: string
+        default: ''
       CONCURRENCY:
         required: false
         type: number
@@ -146,6 +150,11 @@ jobs:
         run: |
           echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" > .npmrc
           echo "@flooz-link:registry=https://npm.pkg.github.com" >> .npmrc
+
+      - name: Setup .npmrc file for parent
+        if: inputs.PARENT_DIR != ''
+        run: |
+          cp .npmrc ${{ inputs.PARENT_DIR }}/.npmrc
 
       - name: Build Container
         run: |-

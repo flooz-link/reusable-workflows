@@ -9,7 +9,7 @@ on:
       SERVICE:
         required: true
         type: string
-      ENV: 
+      ENV:
         required: true
         type: string
       TOPIC:
@@ -24,9 +24,21 @@ on:
         type: string
         default: 7d
       ACK_DEADLINE:
-          required: false
-          type: number
-          default: 120
+        required: false
+        type: number
+        default: 120
+      RETRY_POLICY: # New input for enabling retry policy
+        required: false
+        type: string
+        default: "disabled" # Default to disabled, can be "immediately" or "exponential"
+      RETRY_MIN_BACKOFF: # New input for minimum backoff
+        required: false
+        type: number
+        default: 10 # Default minimum backoff of 10 seconds
+      RETRY_MAX_BACKOFF: # New input for maximum backoff
+        required: false
+        type: number
+        default: 600 # Default maximum backoff of 600 seconds (10 minutes)
     secrets:
       SA_CREDENTIALS:
         required: true
@@ -52,7 +64,7 @@ jobs:
       - name: Authorize Docker push
         run: gcloud auth configure-docker
 
-      - name: Create PubSub Subscription For ${{ inputs.ENDPOINT }}
+      - name: Create/Update PubSub Subscription For ${{ inputs.ENDPOINT }}
         run: |-
           pushTopic=$(echo ${{ inputs.ENDPOINT }})
           subscriptionsKey=$(echo ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.TOPIC }}-subscription)
@@ -60,18 +72,30 @@ jobs:
           emptyResponse=$(echo "[]")
           output=$(gcloud pubsub subscriptions list --filter=name=projects/${{ secrets.PROJECT_ID }}/subscriptions/$subscriptionsKey --format="json")
           echo $output
-          if [ $output == $emptyResponse ]; then
-              echo "Creating new PubSub subscription"  
-              gcloud pubsub subscriptions create $subscriptionsKey \
+          if [ "$output" == "$emptyResponse" ]; then
+            echo "Creating new PubSub subscription"
+            gcloud pubsub subscriptions create $subscriptionsKey \
               --topic=${{ inputs.TOPIC }} \
               --topic-project=${{ inputs.PUB_SUB_PROJECT_ID }} \
               --push-endpoint=$pushTopic \
               --message-retention-duration=${{ inputs.RETENTION }} \
-              --ack-deadline=${{ inputs.ACK_DEADLINE }}
+              --ack-deadline=${{ inputs.ACK_DEADLINE }} \
+              $(if [ "${{ inputs.RETRY_POLICY }}" == "immediately" ]; then echo "--retry-policy=immediate"; fi) \
+              $(if [ "${{ inputs.RETRY_POLICY }}" == "exponential" ]; then
+                echo "--retry-policy=exponential-backoff \
+                      --min-retry-backoff=${{ inputs.RETRY_MIN_BACKOFF }}s \
+                      --max-retry-backoff=${{ inputs.RETRY_MAX_BACKOFF }}s";
+                fi)
           else
-              echo "Updating PubSub subscription"
-              gcloud pubsub subscriptions update $subscriptionsKey \
+            echo "Updating PubSub subscription"
+            gcloud pubsub subscriptions update $subscriptionsKey \
               --push-endpoint=$pushTopic \
               --message-retention-duration=${{ inputs.RETENTION }} \
-              --ack-deadline=${{ inputs.ACK_DEADLINE }}
+              --ack-deadline=${{ inputs.ACK_DEADLINE }} \
+              $(if [ "${{ inputs.RETRY_POLICY }}" == "immediately" ]; then echo "--retry-policy=immediate"; fi) \
+              $(if [ "${{ inputs.RETRY_POLICY }}" == "exponential" ]; then
+                echo "--retry-policy=exponential-backoff \
+                      --min-retry-backoff=${{ inputs.RETRY_MIN_BACKOFF }}s \
+                      --max-retry-backoff=${{ inputs.RETRY_MAX_BACKOFF }}s";
+                fi)
           fi

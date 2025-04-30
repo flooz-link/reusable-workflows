@@ -27,18 +27,17 @@ on:
         required: false
         type: number
         default: 120
-      RETRY_POLICY: # New input for enabling retry policy
+      RETRY_POLICY:
+        required: false
+        type: boolean
+      RETRY_MIN_DELAY:
         required: false
         type: string
-        default: "disabled" # Default to disabled, can be "immediately" or "exponential"
-      RETRY_MIN_BACKOFF: # New input for minimum backoff
+        default: "10s"
+      RETRY_MAX_DELAY:
         required: false
-        type: number
-        default: 10 # Default minimum backoff of 10 seconds
-      RETRY_MAX_BACKOFF: # New input for maximum backoff
-        required: false
-        type: number
-        default: 600 # Default maximum backoff of 600 seconds (10 minutes)
+        type: string
+        default: "600s"
     secrets:
       SA_CREDENTIALS:
         required: true
@@ -80,11 +79,9 @@ jobs:
               --push-endpoint=$pushTopic \
               --message-retention-duration=${{ inputs.RETENTION }} \
               --ack-deadline=${{ inputs.ACK_DEADLINE }} \
-              $(if [ "${{ inputs.RETRY_POLICY }}" == "immediately" ]; then echo "--retry-policy=immediate"; fi) \
-              $(if [ "${{ inputs.RETRY_POLICY }}" == "exponential" ]; then
-                echo "--retry-policy=exponential-backoff \
-                      --min-retry-backoff=${{ inputs.RETRY_MIN_BACKOFF }}s \
-                      --max-retry-backoff=${{ inputs.RETRY_MAX_BACKOFF }}s";
+              $(if ${{ inputs.RETRY_POLICY }}; then
+                echo " --min-retry-delay=${{ inputs.RETRY_MIN_DELAY }} \
+                       --max-retry-delay=${{ inputs.RETRY_MAX_DELAY }}";
                 fi)
           else
             echo "Updating PubSub subscription"
@@ -92,10 +89,8 @@ jobs:
               --push-endpoint=$pushTopic \
               --message-retention-duration=${{ inputs.RETENTION }} \
               --ack-deadline=${{ inputs.ACK_DEADLINE }} \
-              $(if [ "${{ inputs.RETRY_POLICY }}" == "immediately" ]; then echo "--retry-policy=immediate"; fi) \
-              $(if [ "${{ inputs.RETRY_POLICY }}" == "exponential" ]; then
-                echo "--retry-policy=exponential-backoff \
-                      --min-retry-backoff=${{ inputs.RETRY_MIN_BACKOFF }}s \
-                      --max-retry-backoff=${{ inputs.RETRY_MAX_BACKOFF }}s";
+              $(if ${{ inputs.RETRY_POLICY }}; then
+                echo " --min-retry-delay=${{ inputs.RETRY_MIN_DELAY }} \
+                       --max-retry-delay=${{ inputs.RETRY_MAX_DELAY }}";
                 fi)
           fi

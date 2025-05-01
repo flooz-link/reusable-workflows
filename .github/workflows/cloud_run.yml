@@ -155,6 +155,10 @@ jobs:
         if: inputs.PARENT_DIR != ''
         run: |
           cp .npmrc ${{ inputs.PARENT_DIR }}/.npmrc
+      - name: Log Project ID
+        run: |
+          echo "PROJECT_ID is: ${{ secrets.PROJECT_ID }}"
+          
 
       - name: Build Container
         run: |-

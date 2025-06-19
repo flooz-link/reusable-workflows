@@ -20,6 +20,13 @@ on:
         required: false
         type: string
         default: us-central1
+      METHOD:
+        required: false
+        type: string
+        default: GET
+      HEADERS:
+        required: false
+        type: string
       JOB_NAME:
         required: true
         type: string
@@ -61,8 +68,16 @@ jobs:
           output=$(gcloud scheduler jobs list --format=json --location=${{ inputs.REGION }} --filter=name="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/jobs/${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job")
           if [ $output == $emptyResponse ]; then  
               echo "Creating new Cloud Schedule"
-              gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }}
+              headers_flag=""
+              if [ -n "${{ inputs.HEADERS }}" ]; then
+                  headers_flag="--headers=${{ inputs.HEADERS }}"
+              fi
+              gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }} $headers_flag
           else
               echo "Updating existing one"
-              gcloud scheduler jobs update http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method GET --location=${{ inputs.REGION }}
+              headers_flag=""
+              if [ -n "${{ inputs.HEADERS }}" ]; then
+                  headers_flag="--update-headers=${{ inputs.HEADERS }}"
+              fi
+              gcloud scheduler jobs update http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }} $headers_flag
           fi

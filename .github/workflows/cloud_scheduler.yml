@@ -20,6 +20,13 @@ on:
         required: false
         type: string
         default: us-central1
+      METHOD:
+        required: false
+        type: string
+        default: GET
+      HEADERS:
+        required: false
+        type: string
       JOB_NAME:
         required: true
         type: string

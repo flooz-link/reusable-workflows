@@ -160,8 +160,21 @@ jobs:
         run: |-
           docker build -t ${{ inputs.REGION }}.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
           docker push ${{ inputs.REGION }}.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
-          
+        continue-on-error: true 
+
+      - name: Handle failure of main_task
+        if: ${{ failure() }} # This step runs only if any previous step in the job failed
+        run: |
+          echo "::error::The Google Artifact Registry task failed! Performing recovery actions... with Container Registry."
+          docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
+          docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
+
+
+
+
+
       - name: Create Flag Str
+        if: ${{ success() }}
         id: flags
         run: |-
           defaultFlags=$(echo "--cpu=${{ inputs.CPU }} --memory=${{ inputs.MEM }} --execution-environment gen1 --concurrency=${{ inputs.CONCURRENCY }} --max-instances=${{ inputs.MAX_INSTANCES }} --min-instances=${{ inputs.MIN_INSTANCES}}")
@@ -194,6 +207,7 @@ jobs:
           echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"
 
       - name: Deploy to Cloud Run
+        if: ${{ success() }}
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -210,6 +224,7 @@ jobs:
             ${{ inputs.CONTAINER_ARGS }}
 
       - name: Show Output
+        if: ${{ success() }}
         run: |-
           echo ${{ steps.deploy.outputs.url }}
           echo "::set-output url=echo ${{ steps.deploy.outputs.url }}"

@@ -158,9 +158,9 @@ jobs:
 
       - name: Build Container
         run: |-
-          docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
-          docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
-
+          docker build -t ${{ inputs.REGION }}.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
+          docker push ${{ inputs.REGION }}.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
+          
       - name: Create Flag Str
         id: flags
         run: |-

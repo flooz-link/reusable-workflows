@@ -157,9 +157,17 @@ jobs:
           cp .npmrc ${{ inputs.PARENT_DIR }}/.npmrc
 
       - name: Build Container
+        id: build_container_artifact_registry
         run: |-
-          docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
-          docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
+          docker build -t ${{ inputs.REGION }}.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
+          docker push ${{ inputs.REGION }}.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
+
+      # - name: Handle failure of main_task
+      #   if: ${{ failure() }}
+      #   run: |
+      #     echo "::error::The Google Artifact Registry task failed! Performing recovery actions... with Container Registry."
+      #     docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
+      #     docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
 
       - name: Create Flag Str
         id: flags
@@ -191,9 +199,10 @@ jobs:
             defaultFlags=$(echo "$defaultFlags --timeout=${{ inputs.TIMEOUT }}")
           fi
 
-          echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"
+          echo "name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})" >> $GITHUB_OUTPUT
 
       - name: Deploy to Cloud Run
+        if: ${{ success() }}
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -210,6 +219,7 @@ jobs:
             ${{ inputs.CONTAINER_ARGS }}
 
       - name: Show Output
+        if: ${{ success() }}
         run: |-
           echo ${{ steps.deploy.outputs.url }}
-          echo "::set-output url=echo ${{ steps.deploy.outputs.url }}"
+          echo "url=${{ steps.deploy.outputs.url }}" >> $GITHUB_OUTPUT

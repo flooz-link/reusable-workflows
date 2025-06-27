@@ -157,21 +157,18 @@ jobs:
           cp .npmrc ${{ inputs.PARENT_DIR }}/.npmrc
 
       - name: Build Container
+        id: build_container_artifact_registry
         run: |-
           docker build -t ${{ inputs.REGION }}.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
           docker push ${{ inputs.REGION }}.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
         continue-on-error: true 
 
       - name: Handle failure of main_task
-        if: ${{ failure() }} # This step runs only if any previous step in the job failed
+        if: ${{ failure() }}
         run: |
           echo "::error::The Google Artifact Registry task failed! Performing recovery actions... with Container Registry."
           docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
           docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
-
-
-
-
 
       - name: Create Flag Str
         if: ${{ success() }}

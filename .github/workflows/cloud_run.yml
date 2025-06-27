@@ -204,7 +204,7 @@ jobs:
             defaultFlags=$(echo "$defaultFlags --timeout=${{ inputs.TIMEOUT }}")
           fi
 
-          echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"
+          echo "name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})" >> $GITHUB_OUTPUT
 
       - name: Deploy to Cloud Run
         if: ${{ success() }}
@@ -227,4 +227,4 @@ jobs:
         if: ${{ success() }}
         run: |-
           echo ${{ steps.deploy.outputs.url }}
-          echo "::set-output url=echo ${{ steps.deploy.outputs.url }}"
+          echo "url=${{ steps.deploy.outputs.url }}" >> $GITHUB_OUTPUT

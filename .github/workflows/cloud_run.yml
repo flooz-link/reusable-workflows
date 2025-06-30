@@ -162,9 +162,9 @@ jobs:
       - name: Build Container
         id: build_container_artifact_registry
         run: |-
-          docker build -t us-central1-docker.pkg.dev/flooz-indexer/flooz-indexer-cloud-run-docker-staging/property-enrichment-stg:${{ github.sha }} -f ./Dockerfile . --build-arg ENV=staging --build-arg GIT_VERSION=${SHORT_SHA}
-          docker push us-central1-docker.pkg.dev/flooz-indexer/flooz-indexer-cloud-run-docker-staging/property-enrichment-stg:${{ github.sha }}
-          
+          docker build -t ${{ inputs.REGION }}-docker.pkg.dev/flooz-indexer/flooz-indexer-cloud-run-docker-staging/property-enrichment-stg:${{ github.sha }} -f ./Dockerfile . --build-arg ENV=staging --build-arg GIT_VERSION=${SHORT_SHA}
+          docker push ${{ inputs.REGION }}-docker.pkg.dev/flooz-indexer/flooz-indexer-cloud-run-docker-staging/property-enrichment-stg:${{ github.sha }}
+
           # docker build -t ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
           # docker push ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
 

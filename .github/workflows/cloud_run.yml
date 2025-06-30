@@ -162,8 +162,8 @@ jobs:
       - name: Build Container
         id: build_container_artifact_registry
         run: |-
-          docker build -t ${{ inputs.REGION }}-docker.pkg.dev/flooz-indexer/flooz-indexer-cloud-run-docker-staging/property-enrichment-stg:${{ github.sha }} -f ./Dockerfile . --build-arg ENV=staging --build-arg GIT_VERSION=${SHORT_SHA}
-          docker push ${{ inputs.REGION }}-docker.pkg.dev/flooz-indexer/flooz-indexer-cloud-run-docker-staging/property-enrichment-stg:${{ github.sha }}
+          docker build -t ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-staging/property-enrichment-stg:${{ github.sha }} -f ./Dockerfile . --build-arg ENV=staging --build-arg GIT_VERSION=${SHORT_SHA}
+          docker push ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-staging/property-enrichment-stg:${{ github.sha }}
 
           # docker build -t ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
           # docker push ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
@@ -208,7 +208,6 @@ jobs:
           echo "name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})" >> $GITHUB_OUTPUT
 
       - name: Deploy to Cloud Run
-        if: ${{ success() }}
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -225,7 +224,6 @@ jobs:
             ${{ inputs.CONTAINER_ARGS }}
 
       - name: Show Output
-        if: ${{ success() }}
         run: |-
           echo ${{ steps.deploy.outputs.url }}
           echo "url=${{ steps.deploy.outputs.url }}" >> $GITHUB_OUTPUT

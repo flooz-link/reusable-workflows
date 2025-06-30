@@ -160,7 +160,6 @@ jobs:
 
       - name: Build Container
         run: |
-          echo "::error::The Google Artifact Registry task failed! Performing recovery actions... with Container Registry."
           docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
           docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
 

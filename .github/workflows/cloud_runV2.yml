@@ -1,4 +1,12 @@
-name: Cloud Run Deployment Workflow
+name: Cloud Run Deployment Workflow with Artifact Registry
+
+# This workflow deploys a service to Google Cloud Run using Docker images stored in Google Artifact Registry.
+# It assumes that the Artifact Registry repository has already been created.
+# To create a new repository, you can use the following command:
+# Make sure to replace `flooz-indexer-cloud-run-docker-staging` with your desired repository name.
+# Also, ensure that the `us-central1` region is suitable for your project.
+# gcloud artifacts repositories create flooz-indexer-cloud-run-docker-staging --repository-format=docker --location=us-central1 --description="My Docker images for flooz-indexer environment staging"
+# gcloud artifacts repositories create ${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }} --repository-format=docker --location=${{ inputs.REGION }} --description="My Docker images for ${{ inputs.ENV }} environment"
 
 on:
   workflow_call:
@@ -127,7 +135,7 @@ jobs:
       - name: Authorize Docker push
         run: |
           gcloud auth configure-docker
-          gcloud auth list
+          gcloud auth configure-docker ${{ inputs.REGION }}-docker.pkg.dev
 
       - name: Fix env vars
         run: |
@@ -159,9 +167,10 @@ jobs:
           cp .npmrc ${{ inputs.PARENT_DIR }}/.npmrc
 
       - name: Build Container
-        run: |
-          docker build -t gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
-          docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
+        id: build_container_artifact_registry
+        run: |-
+          docker build -t ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
+          docker push ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
 
       - name: Create Flag Str
         id: flags
@@ -199,7 +208,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ inputs.SERVICE }}
-          image: gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
+          image: ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
           region: ${{ inputs.REGION }}
           gcloud_component: 'beta'
           flags: '${{steps.flags.outputs.flags}}'

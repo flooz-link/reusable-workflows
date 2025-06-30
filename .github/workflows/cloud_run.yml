@@ -201,8 +201,7 @@ jobs:
           if [[ "${{ inputs.TIMEOUT }}" -gt 300 ]]; then
             defaultFlags=$(echo "$defaultFlags --timeout=${{ inputs.TIMEOUT }}")
           fi
-
-          echo "name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})" >> $GITHUB_OUTPUT
+          echo "::set-output name=flags::$(echo $defaultFlags ${{ inputs.INGRESS_RULE }} ${{ inputs.CUSTOM_FLAGS }})"
 
       - name: Deploy to Cloud Run
         id: deploy

@@ -162,11 +162,8 @@ jobs:
       - name: Build Container
         id: build_container_artifact_registry
         run: |-
-          docker build -t ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-staging/property-enrichment-stg:${{ github.sha }} -f ./Dockerfile . --build-arg ENV=staging --build-arg GIT_VERSION=${SHORT_SHA}
-          docker push ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-staging/property-enrichment-stg:${{ github.sha }}
-
-          # docker build -t ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
-          # docker push ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
+          docker build -t ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }} -f ${{ inputs.DOCKER_FILE }} --build-arg ENV=${{ inputs.ENV }} --build-arg GIT_VERSION=${SHORT_SHA}
+          docker push ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
 
       # - name: Handle failure of main_task
       #   if: ${{ failure() }}
@@ -212,7 +209,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ inputs.SERVICE }}
-          image: gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
+          image: ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
           region: ${{ inputs.REGION }}
           gcloud_component: 'beta'
           flags: '${{steps.flags.outputs.flags}}'

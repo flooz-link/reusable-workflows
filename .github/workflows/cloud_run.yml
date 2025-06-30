@@ -199,7 +199,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ inputs.SERVICE }}
-          image: ${{ inputs.REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.PROJECT_ID }}-cloud-run-docker-${{ inputs.ENV }}/${{ inputs.SERVICE }}:${{ github.sha }}
+          image: gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE }}:${{ github.sha }}
           region: ${{ inputs.REGION }}
           gcloud_component: 'beta'
           flags: '${{steps.flags.outputs.flags}}'
@@ -213,4 +213,4 @@ jobs:
       - name: Show Output
         run: |-
           echo ${{ steps.deploy.outputs.url }}
-          echo "url=${{ steps.deploy.outputs.url }}" >> $GITHUB_OUTPUT
+          echo "::set-output url=echo ${{ steps.deploy.outputs.url }}"

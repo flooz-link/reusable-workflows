@@ -222,4 +222,4 @@ jobs:
       - name: Show Output
         run: |-
           echo ${{ steps.deploy.outputs.url }}
-          echo "url=${{ steps.deploy.outputs.url }}" >> $GITHUB_OUTPUT
+          echo "::set-output url=echo ${{ steps.deploy.outputs.url }}"

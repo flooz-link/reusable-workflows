@@ -49,14 +49,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: 'auth'
-        uses: 'google-github-actions/auth@v0'
+        uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.SA_CREDENTIALS }}'
           create_credentials_file: true
           export_environment_variables: true
 
       - name: Setup Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Create ${{ inputs.SERVICE }} ${{ inputs.ENV }} ${{ inputs.JOB_NAME }} Cloud Scheduling
         run: |-

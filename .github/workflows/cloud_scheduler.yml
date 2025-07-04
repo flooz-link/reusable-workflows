@@ -39,6 +39,8 @@ on:
       PROJECT_ID:
         required: true
         description: The GCP project ID
+      AUTH_HEADER:
+        required: false
 
 
       
@@ -74,11 +76,14 @@ jobs:
               echo "Updating existing one"
               headers_flag=""
               headers="${{ inputs.HEADERS }}"
+              authHeader="${{ secrets.AUTH_HEADER }}"
               echo "HEADERS input: '$headers'"
+              echo "AUTH_HEADER input: '$authHeader'"
+              
               
               args=(gcloud scheduler jobs update http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri "$endpoint" --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }})
-              if [ -n "$headers" ]; then
-                  args+=(--update-headers="$headers")
+              if [ -n "$authHeader" ]; then
+                  args+=(--update-headers="$authHeader")
               fi
               "${args[@]}"
           fi

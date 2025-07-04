@@ -58,9 +58,6 @@ jobs:
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
 
-      - name: Authorize Docker push
-        run: gcloud auth configure-docker
-
       - name: Create ${{ inputs.SERVICE }} ${{ inputs.ENV }} ${{ inputs.JOB_NAME }} Cloud Scheduling
         run: |-
           endpoint=$(echo ${{ inputs.ENDPOINT }})

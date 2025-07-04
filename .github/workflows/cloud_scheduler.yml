@@ -74,7 +74,10 @@ jobs:
               echo "Updating existing one"
               headers_flag=""
               if [ -n "${{ inputs.HEADERS }}" ]; then
+
+                  echo "Set header"
                   headers_flag="--update-headers=\"${{ inputs.HEADERS }}\""
               fi
+               echo "The header output: $headers_flag"
               gcloud scheduler jobs update http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }} $headers_flag
           fi

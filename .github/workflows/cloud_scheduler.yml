@@ -42,10 +42,6 @@ on:
       AUTH_HEADER:
         required: false
 
-
-      
-    
-
 jobs:
   deploy-cloud-run-service:
     runs-on: ubuntu-latest
@@ -67,23 +63,23 @@ jobs:
           output=$(gcloud scheduler jobs list --format=json --location=${{ inputs.REGION }} --filter=name="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/jobs/${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job")
           if [ $output == $emptyResponse ]; then  
               echo "Creating new Cloud Schedule"
-              headers_flag=""
-              if [ -n "${{ inputs.HEADERS }}" ]; then
-                  headers_flag="--headers=\"${{ inputs.HEADERS }}\""
-              fi
-              gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }} $headers_flag
-          else
-              echo "Updating existing one"
-              headers_flag=""
+              
               headers="${{ inputs.HEADERS }}"
               authHeader="${{ secrets.AUTH_HEADER }}"
-              echo "HEADERS input: '$headers'"
-              echo "AUTH_HEADER input: '$authHeader'"
               
+              args=(gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }})
+              if [ -n "$authHeader" ] || [ -n "$headers" ]; then
+                  args+=(--headers="$authHeader $headers")
+              fi
+              "${args[@]}"
+          else
+              echo "Updating existing one"
+              headers="${{ inputs.HEADERS }}"
+              authHeader="${{ secrets.AUTH_HEADER }}"
               
               args=(gcloud scheduler jobs update http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri "$endpoint" --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }})
-              if [ -n "$authHeader" ]; then
-                  args+=(--update-headers="$authHeader")
+              if [ -n "$authHeader" ] || [ -n "$headers" ]; then
+                  args+=(--update-headers="$authHeader $headers")
               fi
               "${args[@]}"
           fi

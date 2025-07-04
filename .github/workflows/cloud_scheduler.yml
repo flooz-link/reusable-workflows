@@ -67,14 +67,14 @@ jobs:
               echo "Creating new Cloud Schedule"
               headers_flag=""
               if [ -n "${{ inputs.HEADERS }}" ]; then
-                  headers_flag="--headers=${{ inputs.HEADERS }}"
+                  headers_flag="--headers=\"${{ inputs.HEADERS }}\""
               fi
               gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }} $headers_flag
           else
               echo "Updating existing one"
               headers_flag=""
               if [ -n "${{ inputs.HEADERS }}" ]; then
-                  headers_flag="--update-headers=${{ inputs.HEADERS }}"
+                  headers_flag="--update-headers=\"${{ inputs.HEADERS }}\""
               fi
               gcloud scheduler jobs update http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }} $headers_flag
           fi

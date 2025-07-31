@@ -23,31 +23,36 @@ on:
         required: false
         type: number
         default: 5
-        description: The memory amount in gigabytes for Redis, defaults to 5 as this is the minimum for replicated clusters
+        description: The memory amount in gigabytes for Redis, defaults to 5 as this is the minimum for replicated clusters.
+      EVICTION_POLICY:
+        required: false
+        type: string
+        default: "allkeys-lru"
+        description: The Redis maxmemory eviction policy to use.
       SNAPSHOT_PERIOD:
         required: false
         type: string
         default: "1h"
-        description: The period for taking snapshots (check https://cloud.google.com/sdk/gcloud/reference/redis/instances/create#--rdb-snapshot-period) defaults to 1h
+        description: The period for taking snapshots (check https://cloud.google.com/sdk/gcloud/reference/redis/instances/create#--rdb-snapshot-period) defaults to 1h.
       REGION:
         required: false
         type: string
         default: us-central1
-        
+
     secrets:
       SA_CREDENTIALS:
         required: true
-        description: The Service Account that will be used to perform changes on GCP
+        description: The Service Account that will be used to perform changes on GCP.
       PROJECT_ID:
         required: true
-        description: The GCP project ID
+        description: The GCP project ID.
 
     outputs:
-      read_url: 
-        description: Read URL of clustered memory store redis instance
+      read_url:
+        description: Read URL of clustered memory store redis instance.
         value: ${{ jobs.provision-memory-store-cluster.outputs.read_url }}
-      write_url: 
-        description: Write URL of clustered memory store redis instance if no replication is enabled read_url and write_url have the same value
+      write_url:
+        description: Write URL of clustered memory store redis instance if no replication is enabled read_url and write_url have the same value.
         value: ${{ jobs.provision-memory-store-cluster.outputs.write_url }}
 
 jobs:
@@ -70,7 +75,7 @@ jobs:
           credentials_json: '${{ secrets.SA_CREDENTIALS }}'
           create_credentials_file: true
           export_environment_variables: true
-      
+
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
 
@@ -81,14 +86,13 @@ jobs:
         run: |
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
-
       - name: Provision Cluster
         id: deploy
         run: |-
           emptyResponse=$(echo "[]")
           output=$(gcloud redis instances list --filter="projects/${{ secrets.PROJECT_ID }}/locations/${{ inputs.REGION }}/instances/${{ inputs.CLUSTER_NAME }}" --format=json --region=${{ inputs.REGION }})
 
-          if [ $output == $emptyResponse ]; then
+          if [ "$output" == "$emptyResponse" ]; then
             echo "Provisioning new MemoryStore cluster ${{ inputs.CLUSTER_NAME }}"
             if [ ${{ inputs.REPLICA_COUNT }} -eq 0 ]; then
               gcloud redis instances create ${{ inputs.CLUSTER_NAME }} \
@@ -99,7 +103,8 @@ jobs:
               --network=default \
               --display-name=${{ inputs.CLUSTER_NAME }} \
               --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \
-              --connect-mode=direct-peering 
+              --connect-mode=direct-peering \
+              --redis-config=maxmemory-policy=${{ inputs.EVICTION_POLICY }}
             else
               gcloud redis instances create ${{ inputs.CLUSTER_NAME }} \
               --tier=standard \
@@ -111,33 +116,34 @@ jobs:
               --network=default \
               --display-name=${{ inputs.CLUSTER_NAME }} \
               --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \
-              --connect-mode=direct-peering  
+              --connect-mode=direct-peering \
+              --redis-config=maxmemory-policy=${{ inputs.EVICTION_POLICY }}
             fi
           else
-            if [ ${{ inputs.REPLICA_COUNT }} -eq 0 ]; then
-              gcloud redis instances update ${{ inputs.CLUSTER_NAME }} -q --region=${{ inputs.REGION }} \
+            echo "Updating existing MemoryStore cluster ${{ inputs.CLUSTER_NAME }}"
+            gcloud redis instances update ${{ inputs.CLUSTER_NAME }} -q --region=${{ inputs.REGION }} \
+              --update-redis-config="maxmemory-policy=${{ inputs.EVICTION_POLICY }}" \
               --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \
               --size=${{ inputs.MEMORY }}
-            else
-              gcloud redis instances update ${{ inputs.CLUSTER_NAME }} -q --region=${{ inputs.REGION }} \
-              --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \
-              --replica-count=${{ inputs.REPLICA_COUNT }} \
-              --size=${{ inputs.MEMORY }}
+          
+            # Replica count must be updated in a separate command
+            if [ ${{ inputs.REPLICA_COUNT }} -ne $(echo $output | jq '.[0].replicaCount') ]; then
+                 gcloud redis instances update ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} \
+                    --replica-count=${{ inputs.REPLICA_COUNT }}
             fi
           fi
 
           clusterDesc=$(gcloud redis instances describe ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} --format=json)
 
           if [ ${{ inputs.REPLICA_COUNT }} -eq 0 ]; then
-            echo "::set-output name=read_url::$(echo $clusterDesc | jq -r '"\(.host):\(.port)"')" 
-            echo "::set-output name=write_url::$(echo $clusterDesc | jq -r '"\(.host):\(.port)"')"
+            echo "read_url=$(echo $clusterDesc | jq -r '"\(.host):\(.port)"')" >> $GITHUB_OUTPUT
+            echo "write_url=$(echo $clusterDesc | jq -r '"\(.host):\(.port)"')" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=read_url::$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')" 
-            echo "::set-output name=write_url::$(echo $clusterDesc | jq -r '"\(.host):\(.readEndpointPort)"')"
+            echo "read_url=$(echo $clusterDesc | jq -r '"\(.readEndpoint):\(.readEndpointPort)"')" >> $GITHUB_OUTPUT
+            echo "write_url=$(echo $clusterDesc | jq -r '"\(.host):\(.readEndpointPort)"')" >> $GITHUB_OUTPUT
           fi
 
       - name: Show Output
         run: |-
           echo ${{ steps.deploy.outputs.read_url }}
           echo ${{ steps.deploy.outputs.write_url }}
-          echo "::set-output read_url=echo ${{ steps.deploy.outputs.read_url }} write_url=echo ${{ steps.deploy.outputs.write_url }}"

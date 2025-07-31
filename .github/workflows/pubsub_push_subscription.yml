@@ -9,7 +9,7 @@ on:
       SERVICE:
         required: true
         type: string
-      ENV: 
+      ENV:
         required: true
         type: string
       TOPIC:
@@ -24,9 +24,20 @@ on:
         type: string
         default: 7d
       ACK_DEADLINE:
-          required: false
-          type: number
-          default: 120
+        required: false
+        type: number
+        default: 120
+      RETRY_POLICY:
+        required: false
+        type: boolean
+      RETRY_MIN_DELAY:
+        required: false
+        type: string
+        default: "10s"
+      RETRY_MAX_DELAY:
+        required: false
+        type: string
+        default: "600s"
     secrets:
       SA_CREDENTIALS:
         required: true
@@ -52,7 +63,7 @@ jobs:
       - name: Authorize Docker push
         run: gcloud auth configure-docker
 
-      - name: Create PubSub Subscription For ${{ inputs.ENDPOINT }}
+      - name: Create/Update PubSub Subscription For ${{ inputs.ENDPOINT }}
         run: |-
           pushTopic=$(echo ${{ inputs.ENDPOINT }})
           subscriptionsKey=$(echo ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.TOPIC }}-subscription)
@@ -60,18 +71,26 @@ jobs:
           emptyResponse=$(echo "[]")
           output=$(gcloud pubsub subscriptions list --filter=name=projects/${{ secrets.PROJECT_ID }}/subscriptions/$subscriptionsKey --format="json")
           echo $output
-          if [ $output == $emptyResponse ]; then
-              echo "Creating new PubSub subscription"  
-              gcloud pubsub subscriptions create $subscriptionsKey \
+          if [ "$output" == "$emptyResponse" ]; then
+            echo "Creating new PubSub subscription"
+            gcloud pubsub subscriptions create $subscriptionsKey \
               --topic=${{ inputs.TOPIC }} \
               --topic-project=${{ inputs.PUB_SUB_PROJECT_ID }} \
               --push-endpoint=$pushTopic \
               --message-retention-duration=${{ inputs.RETENTION }} \
-              --ack-deadline=${{ inputs.ACK_DEADLINE }}
+              --ack-deadline=${{ inputs.ACK_DEADLINE }} \
+              $(if ${{ inputs.RETRY_POLICY }}; then
+                echo " --min-retry-delay=${{ inputs.RETRY_MIN_DELAY }} \
+                       --max-retry-delay=${{ inputs.RETRY_MAX_DELAY }}";
+                fi)
           else
-              echo "Updating PubSub subscription"
-              gcloud pubsub subscriptions update $subscriptionsKey \
+            echo "Updating PubSub subscription"
+            gcloud pubsub subscriptions update $subscriptionsKey \
               --push-endpoint=$pushTopic \
               --message-retention-duration=${{ inputs.RETENTION }} \
-              --ack-deadline=${{ inputs.ACK_DEADLINE }}
+              --ack-deadline=${{ inputs.ACK_DEADLINE }} \
+              $(if ${{ inputs.RETRY_POLICY }}; then
+                echo " --min-retry-delay=${{ inputs.RETRY_MIN_DELAY }} \
+                       --max-retry-delay=${{ inputs.RETRY_MAX_DELAY }}";
+                fi)
           fi

@@ -23,7 +23,7 @@ on:
         required: false
         type: number
         default: 5
-        description: The memory amount in gigabytes for Redis.
+        description: The memory amount in gigabytes for Redis, defaults to 5 as this is the minimum for replicated clusters.
       # ADDED: Input for the eviction policy to prevent memory crashes.
       EVICTION_POLICY:
         required: false
@@ -34,7 +34,7 @@ on:
         required: false
         type: string
         default: "1h"
-        description: The period for taking snapshots.
+        description: The period for taking snapshots (check https://cloud.google.com/sdk/gcloud/reference/redis/instances/create#--rdb-snapshot-period) defaults to 1h.
       REGION:
         required: false
         type: string
@@ -53,7 +53,7 @@ on:
         description: Read URL of clustered memory store redis instance.
         value: ${{ jobs.provision-memory-store-cluster.outputs.read_url }}
       write_url:
-        description: Write URL of clustered memory store redis instance.
+        description: Write URL of clustered memory store redis instance if no replication is enabled read_url and write_url have the same value.
         value: ${{ jobs.provision-memory-store-cluster.outputs.write_url }}
 
 jobs:
@@ -82,6 +82,10 @@ jobs:
 
       - name: Make sure jq in installed
         run: sudo apt-get install jq
+
+      - name: Fix env vars
+        run: |
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
       - name: Provision Cluster
         id: deploy
@@ -118,7 +122,6 @@ jobs:
             fi
           else
             echo "Updating existing MemoryStore cluster ${{ inputs.CLUSTER_NAME }}"
-            # SIMPLIFIED: This single command updates settings but NEVER touches the replica count, avoiding the error.
             gcloud redis instances update ${{ inputs.CLUSTER_NAME }} -q --region=${{ inputs.REGION }} \
               --update-redis-config="maxmemory-policy=${{ inputs.EVICTION_POLICY }}" \
               --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \

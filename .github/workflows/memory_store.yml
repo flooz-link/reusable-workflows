@@ -24,7 +24,6 @@ on:
         type: number
         default: 5
         description: The memory amount in gigabytes for Redis, defaults to 5 as this is the minimum for replicated clusters.
-      # ADDED: Input for the eviction policy to prevent memory crashes.
       EVICTION_POLICY:
         required: false
         type: string

@@ -121,30 +121,16 @@ jobs:
             fi
           else
             echo "Updating existing MemoryStore cluster ${{ inputs.CLUSTER_NAME }}"
-          
-            # Step 1: Update the common configurations that apply to all tiers.
             gcloud redis instances update ${{ inputs.CLUSTER_NAME }} -q --region=${{ inputs.REGION }} \
               --update-redis-config="maxmemory-policy=${{ inputs.EVICTION_POLICY }}" \
               --rdb-snapshot-period=${{ inputs.SNAPSHOT_PERIOD }} \
               --size=${{ inputs.MEMORY }}
-          
-            # Step 2: Intelligently update replicas ONLY if the instance is not a High Availability tier.
-            instance_tier=$(echo $output | jq -r '.[0].tier')
-            if [ "$instance_tier" != "STANDARD_HA" ]; then
-              echo "Instance is STANDARD tier. Checking replica count..."
-              # Only update if the replica count has actually changed.
-              if [ ${{ inputs.REPLICA_COUNT }} -ne $(echo $output | jq -r '.[0].replicaCount') ]; then
-                  gcloud redis instances update ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} \
-                    --replica-count=${{ inputs.REPLICA_COUNT }}
-              fi
-            else
-              echo "Instance is STANDARD_HA. Skipping replica count update."
-            fi
           fi
 
           clusterDesc=$(gcloud redis instances describe ${{ inputs.CLUSTER_NAME }} --region=${{ inputs.REGION }} --format=json)
-
-          if [ ${{ inputs.REPLICA_COUNT }} -eq 0 ]; then
+          
+          # This logic correctly determines URLs based on whether replicas exist.
+          if [ $(echo $clusterDesc | jq -r '.readReplicasMode') == "READ_REPLICAS_DISABLED" ]; then
             echo "read_url=$(echo $clusterDesc | jq -r '"\(.host):\(.port)"')" >> $GITHUB_OUTPUT
             echo "write_url=$(echo $clusterDesc | jq -r '"\(.host):\(.port)"')" >> $GITHUB_OUTPUT
           else

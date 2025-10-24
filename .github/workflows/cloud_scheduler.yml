@@ -67,7 +67,7 @@ jobs:
               headers="${{ inputs.HEADERS }}"
               authHeader="${{ secrets.AUTH_HEADER }}"
               
-              args=(gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri $endpoint --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }})
+              args=(gcloud scheduler jobs create http ${{ inputs.SERVICE }}-${{ inputs.ENV }}-${{ inputs.JOB_NAME }}-job --schedule "${{ inputs.CRON }}" --uri "$endpoint" --http-method ${{ inputs.METHOD }} --location=${{ inputs.REGION }})
               if [ -n "$authHeader" ] || [ -n "$headers" ]; then
                   args+=(--headers="$authHeader $headers")
               fi
